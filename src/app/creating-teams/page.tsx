@@ -14,7 +14,6 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
-import { OpenAI } from "openai";
 
 interface Participant {
   name: string;
@@ -80,7 +79,7 @@ export default function CreatingTeams() {
     }
   };
   return (
-    <Container maxWidth={false} sx={{ width: '100%' }}>
+    <Container maxWidth={false} sx={{ width: "100%" }}>
       <Box sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={0} sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
@@ -120,7 +119,7 @@ export default function CreatingTeams() {
 
           <Grid container spacing={3}>
             {/* Participants List */}
-            <Grid width={'20%'}>
+            <Grid width={"20%"}>
               <Paper elevation={2} sx={{ p: 2, height: "100%" }}>
                 <Typography variant="h6" gutterBottom>
                   Participants ({participants.length})
@@ -129,10 +128,7 @@ export default function CreatingTeams() {
                   {participants.map((participant, index) => (
                     <Box key={index}>
                       <ListItem>
-                        <ListItemText
-                          primary={participant.name}
-   
-                        />
+                        <ListItemText primary={participant.name} />
                       </ListItem>
                       {index < participants.length - 1 && <Divider />}
                     </Box>
@@ -142,7 +138,7 @@ export default function CreatingTeams() {
             </Grid>
 
             {/* Teams List */}
-            <Grid width={'78%'}>
+            <Grid width={"78%"}>
               {teams.length > 0 ? (
                 <Box>
                   <Typography variant="h5" gutterBottom>
@@ -169,7 +165,8 @@ export default function CreatingTeams() {
               ) : (
                 <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
                   <Typography color="text.secondary">
-                    Teams will appear here after clicking "Create Teams"
+                    Teams will appear here after clicking &ldquo;Create
+                    Teams&rdquo;
                   </Typography>
                 </Paper>
               )}

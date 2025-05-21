@@ -129,7 +129,7 @@ export default function WinnersPage() {
 
           <Grid container spacing={4}>
             {winnersData?.winners.map((winner, index) => (
-              <Grid item key={winner.teamName} xs={12} md={4}>
+              <Grid key={index}>
                 <Card
                   elevation={3}
                   sx={{
@@ -148,7 +148,12 @@ export default function WinnersPage() {
                       width: 40,
                       height: 40,
                       borderRadius: "50%",
-                      backgroundColor: index === 0 ? "gold" : index === 1 ? "silver" : "#cd7f32",
+                      backgroundColor:
+                        index === 0
+                          ? "gold"
+                          : index === 1
+                          ? "silver"
+                          : "#cd7f32",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -163,11 +168,7 @@ export default function WinnersPage() {
                     <Typography variant="h5" component="h3" gutterBottom>
                       {winner.teamName}
                     </Typography>
-                    <Typography
-                      variant="h6"
-                      color="primary"
-                      gutterBottom
-                    >
+                    <Typography variant="h6" color="primary" gutterBottom>
                       Score: {winner.score}
                     </Typography>
 
@@ -221,4 +222,4 @@ export default function WinnersPage() {
       </Box>
     </Container>
   );
-} 
+}

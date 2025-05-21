@@ -28,8 +28,6 @@ export async function POST(request: Request) {
 
     const checkIn = await CheckIn.create(body);
 
-    const savedCheckIn = await CheckIn.findById(checkIn._id);
-
     return NextResponse.json(checkIn, { status: 201 });
   } catch (error) {
     console.error("Error creating check-in:", error);

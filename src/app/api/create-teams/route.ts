@@ -27,7 +27,12 @@ export async function POST(request: Request) {
     Participants:
     ${participants
       .map(
-        (p: any) =>
+        (p: {
+          name: string;
+          experience: string;
+          aiExperience: string;
+          approach: string;
+        }) =>
           `- ${p.name}: Business Experience: ${p.experience}, AI Experience: ${p.aiExperience}, Approach: ${p.approach}`
       )
       .join("\n")}

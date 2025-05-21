@@ -109,7 +109,7 @@ export default function UploadImage() {
 
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid>
                 <TextField
                   fullWidth
                   label="Team Name"
@@ -119,7 +119,7 @@ export default function UploadImage() {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {!showCamera && !image && (
                     <Button
@@ -172,7 +172,7 @@ export default function UploadImage() {
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid>
                 <Button
                   type="submit"
                   variant="contained"
@@ -185,7 +185,7 @@ export default function UploadImage() {
               </Grid>
 
               {error && (
-                <Grid item xs={12}>
+                <Grid>
                   <Typography color="error" align="center">
                     {error}
                   </Typography>
@@ -193,7 +193,7 @@ export default function UploadImage() {
               )}
 
               {success && (
-                <Grid item xs={12}>
+                <Grid>
                   <Typography color="success.main" align="center">
                     Image uploaded successfully!
                   </Typography>

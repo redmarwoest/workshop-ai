@@ -3,9 +3,8 @@
 import { useForm, Controller, SubmitHandler, Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import ReactConfetti from 'react-confetti';
+import ReactConfetti from "react-confetti";
 import {
-  Box,
   Button,
   Container,
   TextField,
@@ -56,8 +55,8 @@ export default function CheckInForm() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedName, setSubmittedName] = useState("");
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    width: typeof window !== "undefined" ? window.innerWidth : 0,
+    height: typeof window !== "undefined" ? window.innerHeight : 0,
   });
 
   useEffect(() => {
@@ -68,8 +67,8 @@ export default function CheckInForm() {
       });
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const {
@@ -110,7 +109,7 @@ export default function CheckInForm() {
       setSubmittedName(data.name);
       setSubmitSuccess(true);
       reset();
-    } catch (error) {
+    } catch {
       setSubmitError("Failed to submit form. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -118,10 +117,16 @@ export default function CheckInForm() {
   };
 
   return (
-    <Container maxWidth="sm" style={{ padding: '0rem' }}>
-      <div style={{ padding: '1.5rem', gap: '1rem', backgroundColor: '#EAF2FF'}}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <img src="/ai-fix.svg" alt="logo" style={{ width: '32px', height: 'auto' }} />
+    <Container maxWidth="sm" style={{ padding: "0rem" }}>
+      <div
+        style={{ padding: "1.5rem", gap: "1rem", backgroundColor: "#EAF2FF" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <img
+            src="/ai-fix.svg"
+            alt="logo"
+            style={{ width: "32px", height: "auto" }}
+          />
           <Typography variant="h5" component="h1">
             Hey AI, Fix my city
           </Typography>
@@ -149,8 +154,12 @@ export default function CheckInForm() {
           </Paper>
         </>
       ) : (
-        <form style={{ padding: '1.5rem' }} onSubmit={handleSubmit(onSubmit)}>
-          <Typography variant="h6" component="h1" style={{ marginBottom: '1rem' }}>
+        <form style={{ padding: "1.5rem" }} onSubmit={handleSubmit(onSubmit)}>
+          <Typography
+            variant="h6"
+            component="h1"
+            style={{ marginBottom: "1rem" }}
+          >
             Sign up form
           </Typography>
           <Grid container spacing={3}>
@@ -298,7 +307,8 @@ export default function CheckInForm() {
                 render={({ field }) => (
                   <FormControl error={!!errors.approach}>
                     <FormLabel>
-                      How do you usually approach challenges or unfamiliar situations?
+                      How do you usually approach challenges or unfamiliar
+                      situations?
                     </FormLabel>
                     <RadioGroup {...field}>
                       <FormControlLabel
@@ -323,9 +333,7 @@ export default function CheckInForm() {
                       />
                     </RadioGroup>
                     {errors.approach && (
-                      <FormHelperText>
-                        {errors.approach.message}
-                      </FormHelperText>
+                      <FormHelperText>{errors.approach.message}</FormHelperText>
                     )}
                   </FormControl>
                 )}
@@ -348,9 +356,7 @@ export default function CheckInForm() {
                       label="I am not a robot"
                     />
                     {errors.notRobot && (
-                      <FormHelperText>
-                        {errors.notRobot.message}
-                      </FormHelperText>
+                      <FormHelperText>{errors.notRobot.message}</FormHelperText>
                     )}
                   </FormControl>
                 )}
