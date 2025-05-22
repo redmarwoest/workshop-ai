@@ -11,7 +11,7 @@ import {
   Grid,
   CircularProgress,
 } from "@mui/material";
-import { PhotoCamera } from "@mui/icons-material";
+import { PhotoCamera, Upload } from "@mui/icons-material";
 
 export default function UploadImage() {
   const [teamName, setTeamName] = useState("");
@@ -58,6 +58,17 @@ export default function UploadImage() {
         setImage(imageData);
         stopCamera();
       }
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -122,13 +133,28 @@ export default function UploadImage() {
               <Grid>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {!showCamera && !image && (
-                    <Button
-                      variant="contained"
-                      startIcon={<PhotoCamera />}
-                      onClick={startCamera}
-                    >
-                      Open Camera
-                    </Button>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<PhotoCamera />}
+                        onClick={startCamera}
+                      >
+                        Open Camera
+                      </Button>
+                      <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<Upload />}
+                      >
+                        Upload Image
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                        />
+                      </Button>
+                    </Box>
                   )}
 
                   {showCamera && (
