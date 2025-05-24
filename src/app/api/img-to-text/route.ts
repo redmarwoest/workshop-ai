@@ -84,7 +84,7 @@ DO NOT include any text before or after the JSON object. DO NOT use markdown for
         },
         { status: 200 }
       );
-    } catch (parseError) {
+    } catch {
       console.error("JSON parse error. Content received:", content); // Debug log
 
       // If direct parsing fails, try to extract JSON from markdown code blocks
@@ -106,7 +106,7 @@ DO NOT include any text before or after the JSON object. DO NOT use markdown for
           },
           { status: 200 }
         );
-      } catch (secondParseError) {
+      } catch {
         console.error("Second parse attempt failed. Content:", jsonMatch[1]); // Debug log
         return NextResponse.json(
           {
