@@ -16,8 +16,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(teamName, image);
-
     // Use OpenAI's Vision API to extract text from the image
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

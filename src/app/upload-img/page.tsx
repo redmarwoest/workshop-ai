@@ -73,14 +73,56 @@ export default function UploadImage() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Check if the file is HEIC
+      if (
+        file.type === "image/heic" ||
+        file.name.toLowerCase().endsWith(".heic")
+      ) {
+        try {
+          // Convert HEIC to JPEG using a canvas
+          const image = new Image();
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          // Create a promise to handle the image loading
+          const imageLoadPromise = new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+          });
+
+          // Load the image
+          image.src = URL.createObjectURL(file);
+          await imageLoadPromise;
+
+          // Set canvas dimensions to match the image
+          canvas.width = image.width;
+          canvas.height = image.height;
+
+          // Draw the image on the canvas
+          ctx?.drawImage(image, 0, 0);
+
+          // Convert to JPEG
+          const jpegData = canvas.toDataURL("image/jpeg", 0.9);
+          setImage(jpegData);
+        } catch (error) {
+          setError(
+            "Error converting HEIC image. Please try uploading a different format."
+          );
+          console.error("HEIC conversion error:", error);
+        }
+      } else {
+        // Handle regular image files
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
