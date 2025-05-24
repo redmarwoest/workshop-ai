@@ -2,49 +2,17 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import TeamSubmission from "@/models/TeamSubmission";
 import OpenAI from "openai";
-import { exec } from "child_process";
-import { promisify } from "util";
-import fs from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
 
-const execAsync = promisify(exec);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-// Ensure temp directory exists
-const TEMP_DIR = path.join(process.cwd(), "temp");
-await fs.mkdir(TEMP_DIR, { recursive: true });
-
-async function generateVideoWithFFmpeg(
-  audioPath: string,
-  outputPath: string,
-  script: string
-) {
-  // Create a simple video with text overlays using FFmpeg
-  const ffmpegCommand = `
-    ffmpeg -y -i ${audioPath} \
-    -vf "drawtext=text='${
-      script.split("\n")[0]
-    }':fontsize=24:fontcolor=white:x=(w-text_w)/2:y=h-th-10:enable='between(t,0,5)',
-          drawtext=text='${
-            script.split("\n")[1]
-          }':fontsize=24:fontcolor=white:x=(w-text_w)/2:y=h-th-10:enable='between(t,5,10)'" \
-    -c:a copy ${outputPath}
-  `;
-
-  await execAsync(ffmpegCommand);
-}
 
 export async function POST() {
   try {
     await connectDB();
 
-    // Fetch all submissions with rankings
-    const submissions = await TeamSubmission.find({})
-      .sort({ "analysis.ranking": 1 })
-      .limit(3);
+    // Fetch all submissions
+    const submissions = await TeamSubmission.find({});
 
     if (submissions.length === 0) {
       return NextResponse.json(
@@ -53,25 +21,91 @@ export async function POST() {
       );
     }
 
-    // Generate a script for the video
-    const scriptPrompt = `Create an engaging and entertaining script for a 60-second video announcing the winners of an AI solution competition. The script should be conversational, sassy, and professional. Include dramatic pauses and emphasis points for the voice actor.
+    // Analyze each submission
+    const analyzedSubmissions = await Promise.all(
+      submissions.map(async (submission) => {
+        const prompt = `Analyze this AI solution proposal and provide a score (0-100) and detailed feedback. Be sassy and witty in your analysis, but maintain professionalism. Consider the following aspects:
 
-Here are the top 3 teams:
+Problem Statement: ${submission.problemStatement}
+Target Audience: ${submission.targetAudience}
+Proposed Solution: ${submission.proposedSolution}
+Data Needs: ${submission.dataNeeds}
+Expected Impact: ${submission.expectedImpact}
+Ethical Considerations: ${submission.ethicalConsiderations}
+Implementation Plan: ${submission.implementationPlan}
 
-${submissions
+Provide your analysis in the following JSON format:
+{
+  "score": number,
+  "feedback": "string (be sassy and witty but professional)",
+  "strengths": ["string"],
+  "weaknesses": ["string"],
+  "suggestions": ["string"]
+}`;
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-4.1",
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.7,
+        });
+
+        const analysis = JSON.parse(
+          response.choices[0]?.message?.content || "{}"
+        );
+
+        // Update submission with analysis
+        await TeamSubmission.findByIdAndUpdate(submission._id, {
+          analysis: {
+            score: analysis.score,
+            feedback: analysis.feedback,
+          },
+        });
+
+        return {
+          teamName: submission.teamName,
+          score: analysis.score,
+          feedback: analysis.feedback,
+          strengths: analysis.strengths,
+          weaknesses: analysis.weaknesses,
+          suggestions: analysis.suggestions,
+          problemStatement: submission.problemStatement,
+          proposedSolution: submission.proposedSolution,
+          expectedImpact: submission.expectedImpact,
+        };
+      })
+    );
+
+    // Sort submissions by score and take top 2
+    const rankedSubmissions = analyzedSubmissions
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    // Generate sassy summary of winners
+    const winnersPrompt = `Create an engaging and entertaining script for announcing the winners of an AI solution competition. The script should be conversational, sassy, and professional. Include dramatic pauses and emphasis points.
+
+Here are the top 2 teams:
+
+${rankedSubmissions
   .map(
     (sub, index) => `
 ${index + 1}. Team: ${sub.teamName}
-Score: ${sub.analysis.score}
-Feedback: ${sub.analysis.feedback}
+Score: ${sub.score}
+Feedback: ${sub.feedback}
 Problem: ${sub.problemStatement}
 Solution: ${sub.proposedSolution}
 Impact: ${sub.expectedImpact}
+Strengths: ${sub.strengths.join(", ")}
+Weaknesses: ${sub.weaknesses.join(", ")}
 `
   )
   .join("\n")}
 
-Format the script with clear sections and timing suggestions. Include:
+Format the script with clear sections:
 1. An exciting introduction (15 seconds)
 2. Announcement of each winner with their key achievements (30 seconds)
 3. What made each solution special (10 seconds)
@@ -80,11 +114,11 @@ Format the script with clear sections and timing suggestions. Include:
 Make it sound natural and conversational, like a charismatic host announcing the winners.`;
 
     const scriptResponse = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4.1",
       messages: [
         {
           role: "user",
-          content: scriptPrompt,
+          content: winnersPrompt,
         },
       ],
       temperature: 0.8,
@@ -99,41 +133,20 @@ Make it sound natural and conversational, like a charismatic host announcing the
       input: script || "",
     });
 
-    // Generate unique filenames
-    const sessionId = uuidv4();
-    const audioPath = path.join(TEMP_DIR, `${sessionId}_audio.mp3`);
-    const videoPath = path.join(TEMP_DIR, `${sessionId}_video.mp4`);
-
-    // Save audio to file
+    // Convert the speech to base64
     const audioBuffer = await speechResponse.arrayBuffer();
-    await fs.writeFile(audioPath, Buffer.from(audioBuffer));
-
-    // Generate video with FFmpeg
-    await generateVideoWithFFmpeg(audioPath, videoPath, script || "");
-
-    // Read the generated video
-    const videoBuffer = await fs.readFile(videoPath);
-
-    // Clean up temporary files
-    await fs.unlink(audioPath);
-    await fs.unlink(videoPath);
+    const base64Audio = Buffer.from(audioBuffer).toString("base64");
 
     return NextResponse.json({
       script,
-      videoUrl: `data:video/mp4;base64,${videoBuffer.toString("base64")}`,
-      winners: submissions.map((sub) => ({
-        teamName: sub.teamName,
-        score: sub.analysis.score,
-        feedback: sub.analysis.feedback,
-        problemStatement: sub.problemStatement,
-        proposedSolution: sub.proposedSolution,
-        expectedImpact: sub.expectedImpact,
-      })),
+      audioUrl: `data:audio/mp3;base64,${base64Audio}`,
+      winners: rankedSubmissions,
+      allSubmissions: analyzedSubmissions,
     });
   } catch (error) {
-    console.error("Error generating winners video:", error);
+    console.error("Error generating winners announcement:", error);
     return NextResponse.json(
-      { error: "Error generating winners video" },
+      { error: "Error generating winners announcement" },
       { status: 500 }
     );
   }

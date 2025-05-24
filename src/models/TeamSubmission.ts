@@ -5,10 +5,6 @@ const teamSubmissionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  image: {
-    type: String,
-    required: true,
-  },
   problemStatement: {
     type: String,
     required: true,
@@ -37,26 +33,14 @@ const teamSubmissionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  analysis: {
-    score: {
-      type: Number,
-      required: true,
-    },
-    feedback: {
-      type: String,
-      required: true,
-    },
-    ranking: {
-      type: Number,
-    },
-  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-const TeamSubmission = mongoose.models.TeamSubmission || 
+const TeamSubmission =
+  mongoose.models.TeamSubmission ||
   mongoose.model("ai-workshop-team-submission", teamSubmissionSchema);
 
-export default TeamSubmission; 
+export default TeamSubmission;

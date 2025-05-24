@@ -117,7 +117,11 @@ export default function CheckInForm() {
   };
 
   return (
-    <Container maxWidth="sm" style={{ padding: "0rem" }}>
+    <Container
+      maxWidth="sm"
+      style={{ padding: "0rem" }}
+      className="checking-dark"
+    >
       <div
         style={{ padding: "1.5rem", gap: "1rem", backgroundColor: "#EAF2FF" }}
       >

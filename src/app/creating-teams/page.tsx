@@ -9,10 +9,6 @@ import {
   Paper,
   CircularProgress,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
 } from "@mui/material";
 
 interface Participant {
@@ -24,6 +20,7 @@ interface Participant {
 
 interface Team {
   name: string;
+  leader: Participant;
   members: Participant[];
 }
 
@@ -42,6 +39,10 @@ export default function CreatingTeams() {
         throw new Error("Failed to fetch participants");
       }
       const data = await response.json();
+      // Sort participants alphabetically by name
+      data.sort((a: Participant, b: Participant) =>
+        a.name.localeCompare(b.name)
+      );
       setParticipants(data);
       console.log("Participants fetched:", data);
     } catch (error) {
@@ -79,9 +80,9 @@ export default function CreatingTeams() {
     }
   };
   return (
-    <Container maxWidth={false} sx={{ width: "100%" }}>
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={0} sx={{ p: 4 }}>
+    <Container maxWidth={false} sx={{ width: "100%" }} className="team-dark">
+      <Box>
+        <Paper elevation={0} sx={{ p: 4, backgroundColor: "transparent" }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Team Creation
           </Typography>
@@ -117,59 +118,87 @@ export default function CreatingTeams() {
             </Typography>
           )}
 
-          <Grid container spacing={3}>
+          <Grid
+            container
+            spacing={3}
+            sx={{ width: "100%", display: "flex", flexDirection: "column" }}
+          >
             {/* Participants List */}
-            <Grid width={"20%"}>
-              <Paper elevation={2} sx={{ p: 2, height: "100%" }}>
-                <Typography variant="h6" gutterBottom>
-                  Participants ({participants.length})
-                </Typography>
-                <List>
-                  {participants.map((participant, index) => (
-                    <Box key={index}>
-                      <ListItem>
-                        <ListItemText primary={participant.name} />
-                      </ListItem>
-                      {index < participants.length - 1 && <Divider />}
-                    </Box>
-                  ))}
-                </List>
-              </Paper>
+            <Grid>
+              <Typography variant="h6" gutterBottom>
+                Participants ({participants.length})
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
+                {participants.map((participant, index) => (
+                  <Paper
+                    key={index}
+                    sx={{ p: 1, minWidth: 100, textAlign: "center" }}
+                  >
+                    <Typography>{participant.name}</Typography>
+                  </Paper>
+                ))}
+              </Box>
             </Grid>
 
             {/* Teams List */}
-            <Grid width={"78%"}>
-              {teams.length > 0 ? (
-                <Box>
-                  <Typography variant="h5" gutterBottom>
-                    Generated Teams
-                  </Typography>
-                  {teams.map((team, index) => (
-                    <Paper key={index} sx={{ p: 2, mb: 2 }}>
-                      <Typography variant="h6" gutterBottom>
-                        {team.name}
-                      </Typography>
-                      <Box component="ul" sx={{ pl: 2 }}>
-                        {team.members.map((member, memberIndex) => (
-                          <Box component="li" key={memberIndex}>
-                            <Typography>
-                              {member.name} - Experience: {member.experience},
-                              AI Experience: {member.aiExperience}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
-              ) : (
-                <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
-                  <Typography color="text.secondary">
-                    Teams will appear here after clicking &ldquo;Create
-                    Teams&rdquo;
-                  </Typography>
-                </Paper>
-              )}
+            <Grid>
+              <Box>
+                <Typography variant="h5" gutterBottom>
+                  Generated Teams
+                </Typography>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gridTemplateRows: "repeat(2, 1fr)",
+                    gap: "24px",
+                    width: "100%",
+                  }}
+                >
+                  {Array.from({ length: 8 }).map((_, index) => {
+                    const team = teams[index];
+                    return (
+                      <div key={index}>
+                        <Paper key={index} sx={{ p: 4 }}>
+                          {team ? (
+                            <>
+                              <Typography variant="h6" gutterBottom>
+                                {team.name}
+                              </Typography>
+                              <ul style={{ paddingLeft: 16, margin: 0 }}>
+                                <li>
+                                  <Typography>
+                                    {team.leader.name}{" "}
+                                    <span style={{ color: "#fff" }}>
+                                      (captain)
+                                    </span>
+                                  </Typography>
+                                </li>
+                                {team.members
+                                  .filter(
+                                    (member) => member.name !== team.leader.name
+                                  )
+                                  .map((member, memberIndex) => (
+                                    <li key={memberIndex}>
+                                      <Typography>{member.name}</Typography>
+                                    </li>
+                                  ))}
+                              </ul>
+                            </>
+                          ) : null}
+                        </Paper>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Box>
             </Grid>
           </Grid>
         </Paper>

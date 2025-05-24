@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import TeamSubmission from "@/models/TeamSubmission";
 import OpenAI from "openai";
+import TeamImage from "@/models/TeamImage";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -12,8 +13,8 @@ export async function POST() {
     await connectDB();
 
     // Fetch all submissions
-    const submissions = await TeamSubmission.find({});
-    
+    const submissions = await TeamImage.find({});
+
     if (submissions.length === 0) {
       return NextResponse.json(
         { error: "No submissions found to analyze" },
@@ -54,16 +55,18 @@ Provide your analysis in the following JSON format:
           temperature: 0.7,
         });
 
-        const analysis = JSON.parse(response.choices[0]?.message?.content || "{}");
-        
+        const analysis = JSON.parse(
+          response.choices[0]?.message?.content || "{}"
+        );
+
         // Update submission with analysis
         submission.analysis = {
           score: analysis.score,
           feedback: analysis.feedback,
         };
-        
+
         await submission.save();
-        
+
         return {
           teamName: submission.teamName,
           score: analysis.score,
@@ -76,7 +79,9 @@ Provide your analysis in the following JSON format:
     );
 
     // Sort submissions by score
-    const rankedSubmissions = analyzedSubmissions.sort((a, b) => b.score - a.score);
+    const rankedSubmissions = analyzedSubmissions.sort(
+      (a, b) => b.score - a.score
+    );
 
     // Update rankings in database
     await Promise.all(
@@ -91,13 +96,18 @@ Provide your analysis in the following JSON format:
     // Generate sassy summary of winners
     const winnersPrompt = `Create a sassy and witty summary of the top 3 winning teams from this AI solution competition. Here are the submissions:
 
-${rankedSubmissions.slice(0, 3).map((sub, index) => `
+${rankedSubmissions
+  .slice(0, 3)
+  .map(
+    (sub, index) => `
 ${index + 1}. Team: ${sub.teamName}
 Score: ${sub.score}
 Feedback: ${sub.feedback}
 Strengths: ${sub.strengths.join(", ")}
 Weaknesses: ${sub.weaknesses.join(", ")}
-`).join("\n")}
+`
+  )
+  .join("\n")}
 
 Make it entertaining but professional, highlighting what made each team stand out and why they deserve their ranking.`;
 
@@ -124,4 +134,4 @@ Make it entertaining but professional, highlighting what made each team stand ou
       { status: 500 }
     );
   }
-} 
+}

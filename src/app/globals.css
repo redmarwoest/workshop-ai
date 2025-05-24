@@ -14,12 +14,14 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  min-height: 100vh !important;
+  height: 100vh !important;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Matter", Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -39,4 +41,156 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-RegularItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-Heavy.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-HeavyItalic.ttf") format("truetype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Matter";
+  src: url("/fonts/Matter-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+.checking-dark {
+  background: linear-gradient(
+    135deg,
+    #181c24 0%,
+    #232946 50%,
+    #2d1a4a 100%
+  ) !important;
+  color: #fff !important;
+  min-height: 100vh;
+}
+.checking-dark * {
+  color: #fff !important;
+  background: transparent !important;
+  border-color: #fff !important;
+}
+
+.checking-dark .MuiFormLabel-root {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.checking-dark .MuiFormHelperText-root.Mui-error {
+  color: #ff5252 !important;
+  font-weight: 600;
+}
+.checking-dark .MuiInputBase-root.Mui-error .MuiOutlinedInput-notchedOutline {
+  border-color: #ff5252 !important;
+}
+.checking-dark .MuiFormLabel-root.Mui-error {
+  color: #ff5252 !important;
+}
+
+.checking-dark .MuiButton-containedPrimary {
+  background-color: #a259ff !important;
+  color: #fff !important;
+}
+.checking-dark .MuiButton-containedPrimary:hover {
+  background-color: #7c2fff !important;
+}
+
+.team-dark {
+  background: linear-gradient(
+    135deg,
+    #181c24 0%,
+    #232946 50%,
+    #2d1a4a 100%
+  ) !important;
+  color: #f5f6fa !important;
+  min-height: 100vh;
+}
+
+.team-dark .MuiButton-contained {
+  background: #a259ff !important;
+  color: #fff !important;
+}
+.team-dark .MuiButton-contained:hover {
+  background: #7c2fff !important;
+}
+
+.team-dark .MuiPaper-root {
+  background: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(42, 8, 69, 0.35) !important;
+  border-radius: 16px !important;
+  height: 100%;
 }
