@@ -9,6 +9,7 @@ import {
   Paper,
   CircularProgress,
   Grid,
+  Fade,
 } from "@mui/material";
 
 interface Participant {
@@ -108,7 +109,12 @@ export default function CreatingTeams() {
 
           {loading && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-              <CircularProgress />
+              <CircularProgress sx={{ color: "#9c27b0" }} />
+              <Typography sx={{ ml: 2 }}>
+                {teams.length === 0
+                  ? "The AI is analyzing the participants"
+                  : "Loading..."}
+              </Typography>
             </Box>
           )}
 
@@ -124,82 +130,93 @@ export default function CreatingTeams() {
             sx={{ width: "100%", display: "flex", flexDirection: "column" }}
           >
             {/* Participants List */}
-            <Grid>
-              <Typography variant="h6" gutterBottom>
-                Participants ({participants.length})
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                {participants.map((participant, index) => (
-                  <Paper
-                    key={index}
-                    sx={{ p: 1, minWidth: 100, textAlign: "center" }}
-                  >
-                    <Typography>{participant.name}</Typography>
-                  </Paper>
-                ))}
-              </Box>
-            </Grid>
-
-            {/* Teams List */}
-            <Grid>
-              <Box>
-                <Typography variant="h5" gutterBottom>
-                  Generated Teams
+            {participants.length > 0 && teams.length === 0 && (
+              <Grid>
+                <Typography variant="h6" gutterBottom>
+                  Participants ({participants.length})
                 </Typography>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gridTemplateRows: "repeat(2, 1fr)",
-                    gap: "24px",
-                    width: "100%",
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: 2,
+                    flexWrap: "wrap",
                   }}
                 >
-                  {Array.from({ length: 8 }).map((_, index) => {
-                    const team = teams[index];
-                    return (
-                      <div key={index}>
-                        <Paper key={index} sx={{ p: 4 }}>
-                          {team ? (
-                            <>
-                              <Typography variant="h6" gutterBottom>
-                                {team.name}
-                              </Typography>
-                              <ul style={{ paddingLeft: 16, margin: 0 }}>
-                                <li>
-                                  <Typography>
-                                    {team.leader.name}{" "}
-                                    <span style={{ color: "#fff" }}>
-                                      (captain)
-                                    </span>
+                  {participants.map((participant, index) => (
+                    <Paper
+                      key={index}
+                      sx={{ p: 1, minWidth: 100, textAlign: "center" }}
+                    >
+                      <Typography>{participant.name}</Typography>
+                    </Paper>
+                  ))}
+                </Box>
+              </Grid>
+            )}
+
+            {/* Teams List */}
+            {teams.length > 0 && (
+              <Grid>
+                <Box>
+                  <Typography variant="h5" gutterBottom>
+                    Generated Teams
+                  </Typography>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, 1fr)",
+                      gridTemplateRows: "repeat(2, 1fr)",
+                      gap: "24px",
+                      width: "100%",
+                    }}
+                  >
+                    {Array.from({ length: 8 }).map((_, index) => {
+                      const team = teams[index];
+                      return (
+                        <div key={index}>
+                          <Fade
+                            in={true}
+                            timeout={1000}
+                            style={{ transitionDelay: `${index * 100}ms` }}
+                          >
+                            <Paper key={index} sx={{ p: 4 }}>
+                              {team ? (
+                                <>
+                                  <Typography variant="h6" gutterBottom>
+                                    {team.name}
                                   </Typography>
-                                </li>
-                                {team.members
-                                  .filter(
-                                    (member) => member.name !== team.leader.name
-                                  )
-                                  .map((member, memberIndex) => (
-                                    <li key={memberIndex}>
-                                      <Typography>{member.name}</Typography>
+                                  <ul style={{ paddingLeft: 16, margin: 0 }}>
+                                    <li>
+                                      <Typography>
+                                        <strong>{team.leader.name}</strong>{" "}
+                                        <span style={{ color: "#fff" }}>
+                                          (captain)
+                                        </span>
+                                      </Typography>
                                     </li>
-                                  ))}
-                              </ul>
-                            </>
-                          ) : null}
-                        </Paper>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Box>
-            </Grid>
+                                    {team.members
+                                      .filter(
+                                        (member) =>
+                                          member.name !== team.leader.name
+                                      )
+                                      .map((member, memberIndex) => (
+                                        <li key={memberIndex}>
+                                          <Typography>{member.name}</Typography>
+                                        </li>
+                                      ))}
+                                  </ul>
+                                </>
+                              ) : null}
+                            </Paper>
+                          </Fade>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Box>
+              </Grid>
+            )}
           </Grid>
         </Paper>
       </Box>

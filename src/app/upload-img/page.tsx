@@ -37,7 +37,12 @@ export default function UploadImage() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Check if the file is HEIC
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size should be less than 5MB");
+        return;
+      }
+
       if (
         file.type === "image/heic" ||
         file.name.toLowerCase().endsWith(".heic")
@@ -65,8 +70,8 @@ export default function UploadImage() {
           // Draw the image on the canvas
           ctx?.drawImage(image, 0, 0);
 
-          // Convert to JPEG
-          const jpegData = canvas.toDataURL("image/jpeg", 0.9);
+          // Convert to JPEG with reduced quality for mobile
+          const jpegData = canvas.toDataURL("image/jpeg", 0.7);
           setImage(jpegData);
         } catch (error) {
           setError(
@@ -75,12 +80,49 @@ export default function UploadImage() {
           console.error("HEIC conversion error:", error);
         }
       } else {
-        // Handle regular image files
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImage(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        try {
+          // For other image types, process them through canvas to ensure consistent format
+          const image = new Image();
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          // Create a promise to handle the image loading
+          const imageLoadPromise = new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+          });
+
+          // Load the image
+          image.src = URL.createObjectURL(file);
+          await imageLoadPromise;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = image.width;
+          let height = image.height;
+          const maxDimension = 1200; // Maximum dimension for either width or height
+
+          if (width > height && width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+
+          // Set canvas dimensions
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw the image on the canvas
+          ctx?.drawImage(image, 0, 0, width, height);
+
+          // Convert to JPEG with reduced quality for mobile
+          const jpegData = canvas.toDataURL("image/jpeg", 0.7);
+          setImage(jpegData);
+        } catch (error) {
+          setError("Error processing image. Please try again.");
+          console.error("Image processing error:", error);
+        }
       }
     }
   };

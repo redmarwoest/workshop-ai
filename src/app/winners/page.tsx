@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -8,14 +8,11 @@ import {
   Paper,
   CircularProgress,
   Button,
-  Grid,
   Card,
   CardContent,
   Divider,
 } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 
 interface Winner {
@@ -32,6 +29,11 @@ interface WinnersResponse {
   audioUrl: string;
   winners: Winner[];
   allSubmissions: Winner[];
+  thinkingProcess?: {
+    timestamp: string;
+    thought: string;
+    wittyComment: string;
+  }[];
 }
 
 export default function WinnersPage() {
@@ -40,6 +42,23 @@ export default function WinnersPage() {
   const [winnersData, setWinnersData] = useState<WinnersResponse | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [showPodium, setShowPodium] = useState(false);
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const [currentThoughtIndex, setCurrentThoughtIndex] = useState(0);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  const loadingMessages = [
+    "Calculating the perfect blend of creativity and technical prowess...",
+    "Teaching my neural networks to appreciate good code...",
+    "Counting semicolons and converting them to points...",
+    "Running advanced algorithms to detect the most elegant solutions...",
+    "Consulting with my AI colleagues about the best practices...",
+    "Measuring the complexity of your solutions (and my confusion)...",
+    "Converting coffee consumption to productivity metrics...",
+    "Analyzing the ratio of comments to actual code...",
+    "Checking if anyone used Comic Sans in their code...",
+    "Calculating the perfect balance of innovation and practicality...",
+  ];
 
   const generateWinnersAnnouncement = async () => {
     try {
@@ -69,20 +88,137 @@ export default function WinnersPage() {
     }
   };
 
-  const togglePlayback = () => {
-    if (!audio) return;
+  useEffect(() => {
+    if (
+      winnersData?.thinkingProcess &&
+      winnersData.thinkingProcess.length > 0
+    ) {
+      const interval = setInterval(() => {
+        setCurrentThoughtIndex((prev) => {
+          if (prev < winnersData.thinkingProcess!.length - 1) {
+            return prev + 1;
+          }
+          clearInterval(interval);
+          return prev;
+        });
+      }, 3000); // Show new thought every 3 seconds
 
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+      return () => clearInterval(interval);
     }
-    setIsPlaying(!isPlaying);
+  }, [winnersData]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      interval = setInterval(() => {
+        setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+      }, 6000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loading]);
+
+  const startPodiumAnimation = () => {
+    setShowPodium(true);
+    setTimeout(() => {
+      setAnimationComplete(true);
+      if (audio) {
+        audio.play();
+        setIsPlaying(true);
+      }
+    }, 3000);
   };
 
+  const Podium = () => (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-end",
+        height: "400px",
+        position: "relative",
+        mb: 4,
+      }}
+    >
+      {/* Second Place */}
+      <Box
+        sx={{
+          width: "200px",
+          height: "200px",
+          backgroundColor: "#C0C0C0",
+          margin: "0 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          pb: 2,
+          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          opacity: showPodium ? 1 : 0,
+          transition: "all 0.5s ease-out",
+          transitionDelay: "0.5s",
+        }}
+      >
+        <Typography variant="h6" color="white">
+          {winnersData?.winners[1]?.teamName || "2nd Place"}
+        </Typography>
+      </Box>
+
+      {/* First Place */}
+      <Box
+        sx={{
+          width: "200px",
+          height: "300px",
+          backgroundColor: "#FFD700",
+          margin: "0 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          pb: 2,
+          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          opacity: showPodium ? 1 : 0,
+          transition: "all 0.5s ease-out",
+          transitionDelay: "0s",
+        }}
+      >
+        <Typography variant="h6" color="white">
+          {winnersData?.winners[0]?.teamName || "1st Place"}
+        </Typography>
+      </Box>
+
+      {/* Third Place */}
+      <Box
+        sx={{
+          width: "200px",
+          height: "150px",
+          backgroundColor: "#CD7F32",
+          margin: "0 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          pb: 2,
+          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          opacity: showPodium ? 1 : 0,
+          transition: "all 0.5s ease-out",
+          transitionDelay: "1s",
+        }}
+      >
+        <Typography variant="h6" color="white">
+          {winnersData?.winners[2]?.teamName || "3rd Place"}
+        </Typography>
+      </Box>
+    </Box>
+  );
+
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
+    <Container
+      maxWidth={false}
+      sx={{ width: "100%", height: "100vh" }}
+      className="team-dark"
+    >
+      <Box sx={{ width: "100%", height: "100vh" }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
             <EmojiEventsIcon sx={{ fontSize: 40, color: "gold", mr: 2 }} />
@@ -99,6 +235,8 @@ export default function WinnersPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 py: 8,
+                minHeight: "60vh",
+                width: "100%",
               }}
             >
               <Button
@@ -134,8 +272,11 @@ export default function WinnersPage() {
               }}
             >
               <CircularProgress size={60} />
-              <Typography variant="h6" sx={{ mt: 2 }}>
-                Generating announcement...
+              <Typography
+                variant="h6"
+                sx={{ mt: 2, textAlign: "center", maxWidth: "600px" }}
+              >
+                {loadingMessages[loadingMessageIndex]}
               </Typography>
             </Box>
           )}
@@ -151,133 +292,46 @@ export default function WinnersPage() {
             </Box>
           )}
 
-          {winnersData?.script && (
-            <Paper
-              elevation={2}
-              sx={{ p: 3, mb: 4, backgroundColor: "#f5f5f5" }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Button
-                  variant="contained"
-                  onClick={togglePlayback}
-                  startIcon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-                  sx={{ mr: 2 }}
-                >
-                  {isPlaying ? "Pause" : "Play"} Announcement
-                </Button>
+          {winnersData?.thinkingProcess &&
+            winnersData.thinkingProcess.length > 0 && (
+              <Box sx={{ mb: 4 }}>
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      AI's Analysis:
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                      {winnersData.thinkingProcess[currentThoughtIndex].thought}
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="subtitle1" color="primary">
+                      🤖 AI's Witty Comment:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+                      {
+                        winnersData.thinkingProcess[currentThoughtIndex]
+                          .wittyComment
+                      }
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Box>
-              <Typography
-                variant="h6"
-                component="h2"
-                gutterBottom
-                sx={{ color: "primary.main" }}
+            )}
+
+          {winnersData && !showPodium && (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={startPodiumAnimation}
+                startIcon={<EmojiEventsIcon />}
               >
-                Winners Announcement
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ whiteSpace: "pre-line", fontStyle: "italic" }}
-              >
-                {winnersData.script}
-              </Typography>
-            </Paper>
+                Show Podium
+              </Button>
+            </Box>
           )}
 
-          {winnersData?.winners && (
-            <Grid container spacing={4}>
-              {winnersData.winners.map((winner, index) => (
-                <Grid key={index}>
-                  <Card
-                    elevation={3}
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      position: "relative",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: -20,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                        backgroundColor:
-                          index === 0
-                            ? "gold"
-                            : index === 1
-                            ? "silver"
-                            : "#cd7f32",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {index + 1}
-                    </Box>
-
-                    <CardContent sx={{ mt: 2 }}>
-                      <Typography variant="h5" component="h3" gutterBottom>
-                        {winner.teamName}
-                      </Typography>
-                      <Typography variant="h6" color="primary" gutterBottom>
-                        Score: {winner.score}
-                      </Typography>
-
-                      <Divider sx={{ my: 2 }} />
-
-                      <Typography variant="subtitle1" gutterBottom>
-                        Feedback
-                      </Typography>
-                      <Typography variant="body2" paragraph>
-                        {winner.feedback}
-                      </Typography>
-
-                      <Typography variant="subtitle1" gutterBottom>
-                        Strengths
-                      </Typography>
-                      <ul>
-                        {winner.strengths.map((strength, i) => (
-                          <li key={i}>
-                            <Typography variant="body2">{strength}</Typography>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Typography variant="subtitle1" gutterBottom>
-                        Areas for Improvement
-                      </Typography>
-                      <ul>
-                        {winner.weaknesses.map((weakness, i) => (
-                          <li key={i}>
-                            <Typography variant="body2">{weakness}</Typography>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Typography variant="subtitle1" gutterBottom>
-                        Suggestions
-                      </Typography>
-                      <ul>
-                        {winner.suggestions.map((suggestion, i) => (
-                          <li key={i}>
-                            <Typography variant="body2">
-                              {suggestion}
-                            </Typography>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
+          {winnersData && showPodium && <Podium />}
         </Paper>
       </Box>
     </Container>

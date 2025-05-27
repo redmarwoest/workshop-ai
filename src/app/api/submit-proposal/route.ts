@@ -5,7 +5,6 @@ import TeamSubmission from "@/models/TeamSubmission";
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log(data);
     await connectDB();
 
     const submission = new TeamSubmission(data);

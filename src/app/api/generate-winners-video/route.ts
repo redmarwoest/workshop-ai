@@ -34,18 +34,25 @@ Expected Impact: ${submission.expectedImpact}
 Ethical Considerations: ${submission.ethicalConsiderations}
 Implementation Plan: ${submission.implementationPlan}
 
-Provide your analysis in the following JSON format:
+You MUST respond with ONLY a JSON object in this exact format:
 {
   "score": number,
   "feedback": "string (be sassy and witty but professional)",
   "strengths": ["string"],
   "weaknesses": ["string"],
   "suggestions": ["string"]
-}`;
+}
+
+DO NOT include any text before or after the JSON object. DO NOT use markdown formatting. DO NOT include any explanations or apologies.`;
 
         const response = await openai.chat.completions.create({
           model: "gpt-4.1",
           messages: [
+            {
+              role: "system",
+              content:
+                "You are a JSON-only response bot. You must ONLY respond with valid JSON objects, no other text or explanations.",
+            },
             {
               role: "user",
               content: prompt,
@@ -54,33 +61,40 @@ Provide your analysis in the following JSON format:
           temperature: 0.7,
         });
 
-        const analysis = JSON.parse(
-          response.choices[0]?.message?.content || "{}"
-        );
+        const content = response.choices[0]?.message?.content || "{}";
+        console.log("Raw model response:", content); // Debug log
 
-        // Update submission with analysis
-        await TeamSubmission.findByIdAndUpdate(submission._id, {
-          analysis: {
+        try {
+          // Try to parse the content directly first
+          const analysis = JSON.parse(content);
+
+          // Update submission with analysis
+          await TeamSubmission.findByIdAndUpdate(submission._id, {
+            analysis: {
+              score: analysis.score,
+              feedback: analysis.feedback,
+            },
+          });
+
+          return {
+            teamName: submission.teamName,
             score: analysis.score,
             feedback: analysis.feedback,
-          },
-        });
-
-        return {
-          teamName: submission.teamName,
-          score: analysis.score,
-          feedback: analysis.feedback,
-          strengths: analysis.strengths,
-          weaknesses: analysis.weaknesses,
-          suggestions: analysis.suggestions,
-          problemStatement: submission.problemStatement,
-          proposedSolution: submission.proposedSolution,
-          expectedImpact: submission.expectedImpact,
-        };
+            strengths: analysis.strengths,
+            weaknesses: analysis.weaknesses,
+            suggestions: analysis.suggestions,
+            problemStatement: submission.problemStatement,
+            proposedSolution: submission.proposedSolution,
+            expectedImpact: submission.expectedImpact,
+          };
+        } catch (parseError) {
+          console.error("JSON parse error. Content received:", content);
+          throw new Error("Failed to parse model response");
+        }
       })
     );
 
-    // Sort submissions by score and take top 2
+    // Sort submissions by score and take top 3
     const rankedSubmissions = analyzedSubmissions
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
@@ -88,7 +102,7 @@ Provide your analysis in the following JSON format:
     // Generate sassy summary of winners
     const winnersPrompt = `Create an engaging and entertaining script for announcing the winners of an AI solution competition. The script should be conversational, sassy, and professional. Include dramatic pauses and emphasis points.
 
-Here are the top 2 teams:
+Here are the top 3 teams:
 
 ${rankedSubmissions
   .map(
@@ -114,7 +128,7 @@ Format the script with clear sections:
 Make it sound natural and conversational, like a charismatic host announcing the winners.`;
 
     const scriptResponse = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-4",
       messages: [
         {
           role: "user",
