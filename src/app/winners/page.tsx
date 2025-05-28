@@ -34,6 +34,11 @@ interface WinnersResponse {
     thought: string;
     wittyComment: string;
   }[];
+  timestamps: {
+    thirdPlace: number;
+    secondPlace: number;
+    firstPlace: number;
+  };
 }
 
 export default function WinnersPage() {
@@ -46,21 +51,34 @@ export default function WinnersPage() {
   const [animationComplete, setAnimationComplete] = useState(false);
   const [currentThoughtIndex, setCurrentThoughtIndex] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [announcedPlace, setAnnouncedPlace] = useState<number | null>(null);
+  const [showFireworks, setShowFireworks] = useState(false);
 
   const loadingMessages = [
-    "Calculating the perfect blend of creativity and technical prowess...",
-    "Teaching my neural networks to appreciate good code...",
-    "Counting semicolons and converting them to points...",
-    "Running advanced algorithms to detect the most elegant solutions...",
-    "Consulting with my AI colleagues about the best practices...",
-    "Measuring the complexity of your solutions (and my confusion)...",
-    "Converting coffee consumption to productivity metrics...",
-    "Analyzing the ratio of comments to actual code...",
-    "Checking if anyone used Comic Sans in their code...",
-    "Calculating the perfect balance of innovation and practicality...",
+    "Aligning machine bias with human brilliance...",
+    "Asking the AI judge to stop overthinking your genius...",
+    "Consulting the quantum oracle of tech summits...",
+    "Recalibrating for maximum innovation per millisecond...",
+    "Scanning for code that sparks artificial envy...",
+    "Plotting your solution on the human–AI creativity spectrum...",
+    "Negotiating with rogue AIs about your submission's originality...",
+    "Quantifying how much your solution breaks (or makes) the rules...",
+    "Simulating 42 possible realities where you win...",
+    "Comparing your idea to 10,000 others in less than a blink...",
+    "Checking how closely your code resembles sentient thought...",
+    "Asking ChatGPT if it would've thought of that...",
+    "Converting neural admiration into judgeable metrics...",
+    "Evaluating if your creativity threatens my job security...",
+    "Running a sentiment analysis on your brilliance...",
+    "Determining if your solution can start a startup...",
+    "Checking for traces of divine inspiration or Stack Overflow...",
+    "Attempting to quantify vibes in code form...",
+    "Tuning into your idea's frequency on the innovation spectrum...",
+    "Trying to suppress admiration before announcing a winner...",
   ];
 
   const generateWinnersAnnouncement = async () => {
+    console.log(isPlaying, animationComplete);
     try {
       setLoading(true);
       setError(null);
@@ -121,14 +139,104 @@ export default function WinnersPage() {
 
   const startPodiumAnimation = () => {
     setShowPodium(true);
+
+    // Create the timeupdate handler function outside of setTimeout
+    const handleTimeUpdate = () => {
+      if (!audio || !winnersData?.timestamps) return;
+
+      const currentTime = audio.currentTime;
+      const timestamps = winnersData.timestamps;
+
+      // Validate timestamps are valid numbers
+      if (
+        isNaN(timestamps.thirdPlace) ||
+        isNaN(timestamps.secondPlace) ||
+        isNaN(timestamps.firstPlace)
+      ) {
+        console.error("Invalid timestamps:", timestamps);
+        return;
+      }
+
+      // Check if we're close to each announcement time (within 0.5 seconds)
+      if (Math.abs(currentTime - timestamps.thirdPlace) < 0.5) {
+        setAnnouncedPlace(3);
+        setShowFireworks(true);
+        setTimeout(() => setShowFireworks(false), 2000);
+      } else if (Math.abs(currentTime - timestamps.secondPlace) < 0.5) {
+        setAnnouncedPlace(2);
+        setShowFireworks(true);
+        setTimeout(() => setShowFireworks(false), 2000);
+      } else if (Math.abs(currentTime - timestamps.firstPlace) < 0.5) {
+        setAnnouncedPlace(1);
+        setShowFireworks(true);
+        setTimeout(() => setShowFireworks(false), 2000);
+      }
+    };
+
+    // Create the ended handler function
+    const handleEnded = () => {
+      if (!audio) return;
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("ended", handleEnded);
+      setIsPlaying(false);
+    };
+
     setTimeout(() => {
       setAnimationComplete(true);
-      if (audio) {
+      if (audio && winnersData?.timestamps) {
+        // Add event listeners before playing
+        audio.addEventListener("timeupdate", handleTimeUpdate);
+        audio.addEventListener("ended", handleEnded);
+
+        // Start playing
         audio.play();
         setIsPlaying(true);
       }
-    }, 3000);
+    }, 1000);
   };
+
+  const Fireworks = () => (
+    <Box
+      sx={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: "none",
+        zIndex: 1000,
+      }}
+    >
+      {[...Array(20)].map((_, i) => (
+        <Box
+          key={i}
+          sx={{
+            position: "absolute",
+            width: "4px",
+            height: "4px",
+            borderRadius: "50%",
+            backgroundColor: ["#ff0", "#f0f", "#0ff", "#f00", "#0f0"][
+              Math.floor(Math.random() * 5)
+            ],
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animation: "firework 1s ease-out forwards",
+            "@keyframes firework": {
+              "0%": {
+                transform: "scale(0)",
+                opacity: 1,
+              },
+              "100%": {
+                transform: "scale(20)",
+                opacity: 0,
+              },
+            },
+            animationDelay: `${Math.random() * 0.5}s`,
+          }}
+        />
+      ))}
+    </Box>
+  );
 
   const Podium = () => (
     <Box
@@ -153,13 +261,29 @@ export default function WinnersPage() {
           alignItems: "center",
           justifyContent: "flex-end",
           pb: 2,
-          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          transform: showPodium
+            ? announcedPlace === 2
+              ? "translateY(0) scale(1.1)"
+              : "translateY(0) scale(1)"
+            : "translateY(100px) scale(1)",
           opacity: showPodium ? 1 : 0,
           transition: "all 0.5s ease-out",
           transitionDelay: "0.5s",
+          boxShadow:
+            announcedPlace === 2 ? "0 0 20px rgba(255, 255, 255, 0.8)" : "none",
         }}
       >
-        <Typography variant="h6" color="white">
+        <Typography
+          variant="h6"
+          color="white"
+          sx={{
+            fontWeight: announcedPlace === 2 ? "bold" : "normal",
+            opacity: announcedPlace === 2 ? 1 : 0,
+            transform:
+              announcedPlace === 2 ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.3s ease-out",
+          }}
+        >
           {winnersData?.winners[1]?.teamName || "2nd Place"}
         </Typography>
       </Box>
@@ -176,13 +300,29 @@ export default function WinnersPage() {
           alignItems: "center",
           justifyContent: "flex-end",
           pb: 2,
-          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          transform: showPodium
+            ? announcedPlace === 1
+              ? "translateY(0) scale(1.1)"
+              : "translateY(0) scale(1)"
+            : "translateY(100px) scale(1)",
           opacity: showPodium ? 1 : 0,
           transition: "all 0.5s ease-out",
           transitionDelay: "0s",
+          boxShadow:
+            announcedPlace === 1 ? "0 0 20px rgba(255, 255, 255, 0.8)" : "none",
         }}
       >
-        <Typography variant="h6" color="white">
+        <Typography
+          variant="h6"
+          color="white"
+          sx={{
+            fontWeight: announcedPlace === 1 ? "bold" : "normal",
+            opacity: announcedPlace === 1 ? 1 : 0,
+            transform:
+              announcedPlace === 1 ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.3s ease-out",
+          }}
+        >
           {winnersData?.winners[0]?.teamName || "1st Place"}
         </Typography>
       </Box>
@@ -199,13 +339,29 @@ export default function WinnersPage() {
           alignItems: "center",
           justifyContent: "flex-end",
           pb: 2,
-          transform: showPodium ? "translateY(0)" : "translateY(100px)",
+          transform: showPodium
+            ? announcedPlace === 3
+              ? "translateY(0) scale(1.1)"
+              : "translateY(0) scale(1)"
+            : "translateY(100px) scale(1)",
           opacity: showPodium ? 1 : 0,
           transition: "all 0.5s ease-out",
           transitionDelay: "1s",
+          boxShadow:
+            announcedPlace === 3 ? "0 0 20px rgba(255, 255, 255, 0.8)" : "none",
         }}
       >
-        <Typography variant="h6" color="white">
+        <Typography
+          variant="h6"
+          color="white"
+          sx={{
+            fontWeight: announcedPlace === 3 ? "bold" : "normal",
+            opacity: announcedPlace === 3 ? 1 : 0,
+            transform:
+              announcedPlace === 3 ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.3s ease-out",
+          }}
+        >
           {winnersData?.winners[2]?.teamName || "3rd Place"}
         </Typography>
       </Box>
@@ -218,6 +374,7 @@ export default function WinnersPage() {
       sx={{ width: "100%", height: "100vh" }}
       className="team-dark"
     >
+      {showFireworks && <Fireworks />}
       <Box sx={{ width: "100%", height: "100vh" }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
@@ -268,13 +425,19 @@ export default function WinnersPage() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                py: 8,
+                minHeight: "60vh",
+                width: "100%",
               }}
             >
               <CircularProgress size={60} />
               <Typography
                 variant="h6"
-                sx={{ mt: 2, textAlign: "center", maxWidth: "600px" }}
+                sx={{
+                  mt: 2,
+                  textAlign: "center",
+                  maxWidth: "600px",
+                  px: 2,
+                }}
               >
                 {loadingMessages[loadingMessageIndex]}
               </Typography>
@@ -298,14 +461,14 @@ export default function WinnersPage() {
                 <Card sx={{ mb: 2 }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      AI's Analysis:
+                      AIs Analysis:
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 2 }}>
                       {winnersData.thinkingProcess[currentThoughtIndex].thought}
                     </Typography>
                     <Divider sx={{ my: 2 }} />
                     <Typography variant="subtitle1" color="primary">
-                      🤖 AI's Witty Comment:
+                      🤖 AIs Witty Comment:
                     </Typography>
                     <Typography variant="body2" sx={{ fontStyle: "italic" }}>
                       {

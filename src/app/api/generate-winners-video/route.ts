@@ -87,7 +87,7 @@ DO NOT include any text before or after the JSON object. DO NOT use markdown for
             proposedSolution: submission.proposedSolution,
             expectedImpact: submission.expectedImpact,
           };
-        } catch (parseError) {
+        } catch {
           console.error("JSON parse error. Content received:", content);
           throw new Error("Failed to parse model response");
         }
@@ -119,11 +119,17 @@ Weaknesses: ${sub.weaknesses.join(", ")}
   )
   .join("\n")}
 
-Format the script with clear sections:
+Format the script with clear sections and include specific markers for when each winner is announced:
 1. An exciting introduction (15 seconds)
-2. Announcement of each winner with their key achievements (30 seconds)
+2. Announcement of each winner with their key achievements (30 seconds each)
+   - Use the exact phrase "ANNOUNCE_THIRD_PLACE" when announcing third place
+   - Use the exact phrase "ANNOUNCE_SECOND_PLACE" when announcing second place
+   - Use the exact phrase "ANNOUNCE_FIRST_PLACE" when announcing first place
 3. What made each solution special (10 seconds)
 4. A dramatic conclusion (5 seconds)
+5. End with: "Can the members of ${
+      rankedSubmissions[0].teamName
+    } please come to the podium to collect their prize?"
 
 Make it sound natural and conversational, like a charismatic host announcing the winners.`;
 
@@ -139,12 +145,39 @@ Make it sound natural and conversational, like a charismatic host announcing the
     });
 
     const script = scriptResponse.choices[0]?.message?.content;
+    console.log("Generated script:", script);
 
-    // Generate speech from the script using OpenAI's TTS
+    // Convert character positions to approximate seconds
+    // Assuming average speaking rate of 150 words per minute
+    // Average word length of 5 characters
+    const wordsPerSecond = 150 / 60; // 2.5 words per second
+    const charsPerWord = 5;
+    const charsPerSecond = wordsPerSecond * charsPerWord; // ~12.5 characters per second
+
+    const timestamps = {
+      thirdPlace:
+        (script?.indexOf("ANNOUNCE_THIRD_PLACE") || 0) / charsPerSecond,
+      secondPlace:
+        (script?.indexOf("ANNOUNCE_SECOND_PLACE") || 0) / charsPerSecond,
+      firstPlace:
+        (script?.indexOf("ANNOUNCE_FIRST_PLACE") || 0) / charsPerSecond,
+    };
+
+    console.log("Extracted timestamps (in seconds):", timestamps);
+
+    // Clean up the script by removing the markers
+    const cleanScript = script
+      ?.replace("ANNOUNCE_THIRD_PLACE", "")
+      .replace("ANNOUNCE_SECOND_PLACE", "")
+      .replace("ANNOUNCE_FIRST_PLACE", "");
+
+    console.log("Cleaned script:", cleanScript);
+
+    // Generate speech from the cleaned script
     const speechResponse = await openai.audio.speech.create({
       model: "tts-1",
-      voice: "alloy",
-      input: script || "",
+      voice: "echo",
+      input: cleanScript || "",
     });
 
     // Convert the speech to base64
@@ -152,10 +185,11 @@ Make it sound natural and conversational, like a charismatic host announcing the
     const base64Audio = Buffer.from(audioBuffer).toString("base64");
 
     return NextResponse.json({
-      script,
+      script: cleanScript,
       audioUrl: `data:audio/mp3;base64,${base64Audio}`,
       winners: rankedSubmissions,
       allSubmissions: analyzedSubmissions,
+      timestamps, // Include timestamps in the response
     });
   } catch (error) {
     console.error("Error generating winners announcement:", error);
