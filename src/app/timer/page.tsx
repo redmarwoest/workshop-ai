@@ -93,7 +93,7 @@ export default function TimerPage() {
                   mb: 2,
                 }}
               >
-                Time's up! Please scan the QR code and upload your solution
+                {`Times up! Please scan the QR code and upload your solution`}
               </Typography>
               <Button
                 variant="contained"
