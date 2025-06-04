@@ -119,7 +119,7 @@ Weaknesses: ${sub.weaknesses.join(", ")}
   )
   .join("\n")}
 
-Format the script with clear sections and include specific markers for when each winner is announced:
+Format the script with clear sections and include specific markers for when each winner is announced. The timing below is for your reference only - DO NOT include these timing references in the final script:
 1. An exciting introduction (15 seconds)
 2. Announcement of each winner with their key achievements (30 seconds each)
    - Use the exact phrase "ANNOUNCE_THIRD_PLACE" when announcing third place
@@ -131,7 +131,7 @@ Format the script with clear sections and include specific markers for when each
       rankedSubmissions[0].teamName
     } please come to the podium to collect their prize?"
 
-Make it sound natural and conversational, like a charismatic host announcing the winners.`;
+Make it sound natural and conversational, like a charismatic host announcing the winners. DO NOT include any meta-commentary about timing or structure in the final script - just write the actual announcement text.`;
 
     const scriptResponse = await openai.chat.completions.create({
       model: "gpt-4",
@@ -147,20 +147,32 @@ Make it sound natural and conversational, like a charismatic host announcing the
     const script = scriptResponse.choices[0]?.message?.content;
     console.log("Generated script:", script);
 
-    // Convert character positions to approximate seconds
-    // Assuming average speaking rate of 150 words per minute
-    // Average word length of 5 characters
-    const wordsPerSecond = 150 / 60; // 2.5 words per second
-    const charsPerWord = 5;
-    const charsPerSecond = wordsPerSecond * charsPerWord; // ~12.5 characters per second
+    // Calculate timestamps based on word count and include pauses
+    const calculateTimestamp = (text: string) => {
+      // Count words in the text up to the marker
+      const words = text.split(/\s+/).length;
+
+      // Base speaking rate (words per second)
+      const baseRate = 2.5; // 150 words per minute
+
+      // Add extra time for dramatic pauses (0.5 seconds per sentence)
+      const sentences = text.split(/[.!?]+/).length;
+      const pauseTime = sentences * 0.5;
+
+      // Calculate total time
+      return words / baseRate + pauseTime;
+    };
 
     const timestamps = {
-      thirdPlace:
-        (script?.indexOf("ANNOUNCE_THIRD_PLACE") || 0) / charsPerSecond,
-      secondPlace:
-        (script?.indexOf("ANNOUNCE_SECOND_PLACE") || 0) / charsPerSecond,
-      firstPlace:
-        (script?.indexOf("ANNOUNCE_FIRST_PLACE") || 0) / charsPerSecond,
+      thirdPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_THIRD_PLACE")[0] || ""
+      ),
+      secondPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_SECOND_PLACE")[0] || ""
+      ),
+      firstPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_FIRST_PLACE")[0] || ""
+      ),
     };
 
     console.log("Extracted timestamps (in seconds):", timestamps);

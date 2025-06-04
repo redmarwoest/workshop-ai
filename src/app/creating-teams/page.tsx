@@ -11,6 +11,7 @@ import {
   Grid,
   Fade,
 } from "@mui/material";
+import Link from "next/link";
 
 interface Participant {
   name: string;
@@ -105,6 +106,11 @@ export default function CreatingTeams() {
             >
               Create Teams
             </Button>
+            <Link href="/video" passHref>
+              <Button variant="contained" color="secondary">
+                Go to Video
+              </Button>
+            </Link>
           </Box>
 
           {loading && (

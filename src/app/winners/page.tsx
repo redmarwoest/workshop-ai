@@ -429,14 +429,15 @@ export default function WinnersPage() {
                 width: "100%",
               }}
             >
-              <CircularProgress size={60} />
+              <CircularProgress size={100} />
               <Typography
-                variant="h6"
+                variant="h4"
                 sx={{
-                  mt: 2,
+                  mt: 4,
                   textAlign: "center",
-                  maxWidth: "600px",
+                  maxWidth: "800px",
                   px: 2,
+                  fontSize: { xs: "1.5rem", md: "2rem" },
                 }}
               >
                 {loadingMessages[loadingMessageIndex]}

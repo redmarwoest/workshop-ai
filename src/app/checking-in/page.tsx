@@ -152,8 +152,8 @@ export default function CheckInForm() {
               Hi {submittedName},
             </Typography>
             <Typography variant="body1">
-              Thank you for joining our session. We will find you a team in a
-              moment please stay put.
+              Thank you for joining our session. We will see you at 18:35, then
+              we will asign you to your specialized team.
             </Typography>
           </Paper>
         </>
