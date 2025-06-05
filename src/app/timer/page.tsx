@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function TimerPage() {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(1 * 10); // 25 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
 
