@@ -12,15 +12,12 @@ export default function VideoPage() {
 
   return (
     <div className="w-full h-screen bg-black">
-      <video
+      <iframe
+        src="https://iframe.mediadelivery.net/embed/387344/a00c5351-c6ea-408c-970a-e0febe7fcfde?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
+        loading="lazy"
         style={{ width: "100%", height: "100vh" }}
-        controls
-        muted={false}
-        onEnded={handleVideoEnd}
-      >
-        <source src="/video-example.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+        allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
+      ></iframe>
     </div>
   );
 }
