@@ -15,7 +15,7 @@ export default function VideoPage() {
     <div className="w-full h-screen bg-black relative">
       <iframe
         ref={iframeRef}
-        src="https://iframe.mediadelivery.net/embed/387344/a00c5351-c6ea-408c-970a-e0febe7fcfde?autoplay=true&loop=false&muted=false&preload=true&responsive=true&enableapi=true"
+        src="https://iframe.mediadelivery.net/embed/387344/a00c5351-c6ea-408c-970a-e0febe7fcfde?autoplay=false&loop=false&muted=false&preload=true&responsive=true&enableapi=true"
         loading="lazy"
         style={{ width: "100%", height: "100vh" }}
         allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"

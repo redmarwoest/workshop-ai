@@ -39,6 +39,7 @@ interface WinnersResponse {
     secondPlace: number;
     firstPlace: number;
   };
+  totalDuration: number;
 }
 
 export default function WinnersPage() {
@@ -47,6 +48,7 @@ export default function WinnersPage() {
   const [winnersData, setWinnersData] = useState<WinnersResponse | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [victorySong, setVictorySong] = useState<HTMLAudioElement | null>(null);
   const [showPodium, setShowPodium] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
   const [currentThoughtIndex, setCurrentThoughtIndex] = useState(0);
@@ -94,9 +96,23 @@ export default function WinnersPage() {
       const data = await response.json();
       setWinnersData(data);
 
-      // Create audio element
+      // Create audio element for victory song first and ensure it's loaded
+      const newVictorySong = new Audio("/song.mp3");
+      newVictorySong.load(); // Explicitly load the audio
+      setVictorySong(newVictorySong);
+
+      // Create audio element for speech
       const newAudio = new Audio(data.audioUrl);
-      newAudio.onended = () => setIsPlaying(false);
+      newAudio.onended = () => {
+        setIsPlaying(false);
+        // Play victory song when speech ends
+        if (newVictorySong) {
+          newVictorySong.currentTime = 0;
+          newVictorySong.play().catch((error) => {
+            console.error("Error playing victory song:", error);
+          });
+        }
+      };
       setAudio(newAudio);
     } catch (error) {
       setError("Error generating winners announcement. Please try again.");
@@ -146,27 +162,41 @@ export default function WinnersPage() {
 
       const currentTime = audio.currentTime;
       const timestamps = winnersData.timestamps;
+      const totalDuration = winnersData.totalDuration;
 
       // Validate timestamps are valid numbers
       if (
         isNaN(timestamps.thirdPlace) ||
         isNaN(timestamps.secondPlace) ||
-        isNaN(timestamps.firstPlace)
+        isNaN(timestamps.firstPlace) ||
+        isNaN(totalDuration)
       ) {
         console.error("Invalid timestamps:", timestamps);
         return;
       }
 
-      // Check if we're close to each announcement time (within 0.5 seconds)
-      if (Math.abs(currentTime - timestamps.thirdPlace) < 0.5) {
+      // Add a small buffer before each announcement (0.2 seconds)
+      const buffer = 0.2;
+
+      // Check if we're approaching each announcement time
+      if (
+        currentTime >= timestamps.thirdPlace - buffer &&
+        currentTime <= timestamps.thirdPlace + buffer
+      ) {
         setAnnouncedPlace(3);
         setShowFireworks(true);
         setTimeout(() => setShowFireworks(false), 2000);
-      } else if (Math.abs(currentTime - timestamps.secondPlace) < 0.5) {
+      } else if (
+        currentTime >= timestamps.secondPlace - buffer &&
+        currentTime <= timestamps.secondPlace + buffer
+      ) {
         setAnnouncedPlace(2);
         setShowFireworks(true);
         setTimeout(() => setShowFireworks(false), 2000);
-      } else if (Math.abs(currentTime - timestamps.firstPlace) < 0.5) {
+      } else if (
+        currentTime >= timestamps.firstPlace - buffer &&
+        currentTime <= timestamps.firstPlace + buffer
+      ) {
         setAnnouncedPlace(1);
         setShowFireworks(true);
         setTimeout(() => setShowFireworks(false), 2000);
@@ -367,6 +397,33 @@ export default function WinnersPage() {
       </Box>
     </Box>
   );
+
+  // Clean up audio elements when component unmounts
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      if (victorySong) {
+        victorySong.pause();
+        victorySong.currentTime = 0;
+      }
+    };
+  }, [audio, victorySong]);
+
+  // Add event listener for when the victory song ends
+  useEffect(() => {
+    if (victorySong) {
+      const handleVictorySongEnd = () => {
+        console.log("Victory song ended");
+      };
+      victorySong.addEventListener("ended", handleVictorySongEnd);
+      return () => {
+        victorySong.removeEventListener("ended", handleVictorySongEnd);
+      };
+    }
+  }, [victorySong]);
 
   return (
     <Container

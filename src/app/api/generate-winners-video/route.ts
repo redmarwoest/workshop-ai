@@ -147,36 +147,6 @@ Make it sound natural and conversational, like a charismatic host announcing the
     const script = scriptResponse.choices[0]?.message?.content;
     console.log("Generated script:", script);
 
-    // Calculate timestamps based on word count and include pauses
-    const calculateTimestamp = (text: string) => {
-      // Count words in the text up to the marker
-      const words = text.split(/\s+/).length;
-
-      // Base speaking rate (words per second)
-      const baseRate = 2.5; // 150 words per minute
-
-      // Add extra time for dramatic pauses (0.5 seconds per sentence)
-      const sentences = text.split(/[.!?]+/).length;
-      const pauseTime = sentences * 0.5;
-
-      // Calculate total time
-      return words / baseRate + pauseTime;
-    };
-
-    const timestamps = {
-      thirdPlace: calculateTimestamp(
-        script?.split("ANNOUNCE_THIRD_PLACE")[0] || ""
-      ),
-      secondPlace: calculateTimestamp(
-        script?.split("ANNOUNCE_SECOND_PLACE")[0] || ""
-      ),
-      firstPlace: calculateTimestamp(
-        script?.split("ANNOUNCE_FIRST_PLACE")[0] || ""
-      ),
-    };
-
-    console.log("Extracted timestamps (in seconds):", timestamps);
-
     // Clean up the script by removing the markers
     const cleanScript = script
       ?.replace("ANNOUNCE_THIRD_PLACE", "")
@@ -196,12 +166,47 @@ Make it sound natural and conversational, like a charismatic host announcing the
     const audioBuffer = await speechResponse.arrayBuffer();
     const base64Audio = Buffer.from(audioBuffer).toString("base64");
 
+    // Calculate timestamps based on word count and include pauses
+    const calculateTimestamp = (text: string) => {
+      // Count words in the text up to the marker
+      const words = text.split(/\s+/).length;
+
+      // Base speaking rate (words per second)
+      const baseRate = 2.5; // 150 words per minute
+
+      // Add extra time for dramatic pauses (0.5 seconds per sentence)
+      const sentences = text.split(/[.!?]+/).length;
+      const pauseTime = sentences * 0.5;
+
+      // Calculate total time
+      return words / baseRate + pauseTime;
+    };
+
+    // Calculate total duration first
+    const totalDuration = calculateTimestamp(script || "");
+
+    // Calculate timestamps based on the total duration and script markers
+    const timestamps = {
+      thirdPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_THIRD_PLACE")[0] || ""
+      ),
+      secondPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_SECOND_PLACE")[0] || ""
+      ),
+      firstPlace: calculateTimestamp(
+        script?.split("ANNOUNCE_FIRST_PLACE")[0] || ""
+      ),
+    };
+
+    console.log("Extracted timestamps (in seconds):", timestamps);
+
     return NextResponse.json({
       script: cleanScript,
       audioUrl: `data:audio/mp3;base64,${base64Audio}`,
       winners: rankedSubmissions,
       allSubmissions: analyzedSubmissions,
-      timestamps, // Include timestamps in the response
+      timestamps,
+      totalDuration,
     });
   } catch (error) {
     console.error("Error generating winners announcement:", error);
